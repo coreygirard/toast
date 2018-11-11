@@ -20,6 +20,10 @@ def deconstruct_Name(line):
     return ["Name", line.id]
 
 
+def deconstruct_Num(line):
+    return ["Num", line.n]
+
+
 def deconstruct_Assign(line):
     return [
         "Assign",
@@ -41,6 +45,8 @@ def deconstruct_recurse(line):
         return deconstruct_Name(line)
     elif typ == "Assign":
         return deconstruct_Assign(line)
+    elif typ == "Num":
+        return deconstruct_Num(line)
 
     raise TypeError(f"'{typ}' not handled")
 
@@ -64,7 +70,8 @@ def reconstruct_recurse(a):
         return ast.Name(rest[0], None)
     elif head == "Assign":
         return ast.Assign(
-            targets=reconstruct_recurse(rest[0][0]), value=reconstruct_recurse(rest[1])
+            targets=[reconstruct_recurse(rest[0][0])],
+            value=reconstruct_recurse(rest[1]),
         )
     elif head == "Add":
         return ast.BinOp(

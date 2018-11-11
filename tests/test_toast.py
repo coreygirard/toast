@@ -6,6 +6,16 @@ import astor
 import toast
 
 
+def test_cycle():
+    f_source = "def f():\n    return 0\n"
+
+    f_ast = toast.source_to_ast(f_source)
+
+    assert f_ast == {"name": "f", "args": [], "body": [["Return", ["Num", 0]]]}
+
+    f_object = toast.ast_to_object(f_ast)
+
+
 def test_deconstruct_recurse():
     # deconstructing variable references
     assert toast.deconstruct_recurse(ast.Name("a", None)) == ["Name", "a"]
@@ -80,8 +90,8 @@ def test_round_trip():
             ["Return", ["Name", "d"]],
         ],
     }
-    # toast.reconstruct_function(j)
-    # assert toast.reconstruct_function(j) == code
+    toast.reconstruct_function(j)
+    assert toast.reconstruct_function(j) == code
 
 
 def tst_s():
