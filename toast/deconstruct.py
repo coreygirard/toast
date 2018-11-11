@@ -65,3 +65,60 @@ def deconstruct(a):
         return deconstruct_lookup[typ](a)
 
     raise TypeError(f'unhandled type: {typ}')
+
+
+def deconstruct3(a, depth=0):
+    if depth > 5:
+        return 'DEPTH EXCEEDED'
+
+    if isinstance(a, (int, str)):
+        return a
+
+    if isinstance(a, list):
+        return [deconstruct(e, depth+1) for e in a]
+
+    data = {}
+    for attr in dir(a):
+        if attr in ['__abstractmethods__',
+                    '__weakref__',
+                    '__subclasshook__',
+                    '__new__',
+                    '__le__',
+                    '__str__',
+                    '__sizeof__',
+                    '__setattr__',
+                    '__ne__',
+                    '__dir__',
+                    '__doc__',
+                    '__eq__',
+                    '__class__',
+                    '__delattr__',
+                    '__dict__',
+                    '__format__',
+                    '__ge__',
+                    '__getattribute__',
+                    '__gt__',
+                    '__hash__',
+                    '__init__',
+                    '__init_subclass__',
+                    '__lt__',
+                    '__reduce__',
+                    '__reduce_ex__',
+                    '__repr__',
+                    '__add__',
+                    '__contains__',
+                    '__getitem__',
+                    '__getnewargs__',
+                    '__iter__',
+                    '__len__',
+                    '__mul__',
+                    '__rmul__',
+                    '__call__',
+                    '__self__',
+                    '__qualname__',
+                    '__text_signature__']:
+            continue
+
+        data[attr] = deconstruct(getattr(a, attr), depth+1)
+
+    return data

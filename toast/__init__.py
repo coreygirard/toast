@@ -1,6 +1,7 @@
 import ast
 from toast import deconstruct
 from toast import reconstruct
+from toast.scratch import *
 
 
 def source2ast(s):

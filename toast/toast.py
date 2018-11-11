@@ -19,13 +19,14 @@ def f(a, b):
     return c
 """
 
+
 def source2ast(s):
     parsed_ast = ast.parse(s)
     o = parsed_ast.body[0].body
     return deconstruct.deconstruct(o)
 
 
-'''
+"""
 parsed_ast = ast.parse(code)
 
 o = parsed_ast.body[0].body
@@ -39,4 +40,4 @@ print(astor.to_source(parsed_ast))
 
 pprint(o[0].value.left.left.id)
 pprint(o2[0].value.left.left.id)
-'''
+"""
