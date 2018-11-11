@@ -6,6 +6,89 @@ import astor
 import toast
 
 
+def test_source_to_ast_and_back():
+    f_source = "def f():\n    return 0\n"
+
+    # convert to ast
+    f_ast = toast.source_to_ast(f_source)
+    assert f_ast == {"name": "f", "args": [], "body": [["Return", ["Num", 0]]]}
+
+    # modify ast
+    f_ast["body"][0][1][1] = 1
+
+    # convert back to source
+    f_source2 = toast.ast_to_source(f_ast)
+    assert f_source2 == "def f():\n    return 1\n"
+
+
+def test_basic():
+    f_source = "\n".join(["def f():", "    return 4", ""])
+    f_ast = toast.source_to_ast(f_source)
+    assert f_ast == {"name": "f", "args": [], "body": [["Return", ["Num", 4]]]}
+
+
+def test_nested_arithmetic():
+    f_source = "\n".join(["def f():", "    return 1 + (2 - (3 * (4 / 5)))", ""])
+    f_ast = toast.source_to_ast(f_source)
+    assert f_ast == {
+        "name": "f",
+        "args": [],
+        "body": [
+            [
+                "Return",
+                [
+                    "Add",
+                    ["Num", 1],
+                    [
+                        "Sub",
+                        ["Num", 2],
+                        ["Mult", ["Num", 3], ["Div", ["Num", 4], ["Num", 5]]],
+                    ],
+                ],
+            ]
+        ],
+    }
+
+    f_source = "\n".join(["def f():", "    return (1 + (2 - 3)) * (4 / 5)", ""])
+    f_ast = toast.source_to_ast(f_source)
+    assert f_ast == {
+        "name": "f",
+        "args": [],
+        "body": [
+            [
+                "Return",
+                [
+                    "Mult",
+                    ["Add", ["Num", 1], ["Sub", ["Num", 2], ["Num", 3]]],
+                    ["Div", ["Num", 4], ["Num", 5]],
+                ],
+            ]
+        ],
+    }
+    assert toast.ast_to_source(f_ast) == f_source
+
+
+def test_function_call():
+    f_source = "\n".join(["def f():", "    return some_function(1, 2, 3)", ""])
+    f_ast = toast.source_to_ast(f_source)
+    assert f_ast == {
+        "name": "f",
+        "args": [],
+        "body": [
+            [
+                "Return",
+                [
+                    "Call",
+                    ["Name", "some_function"],
+                    [["Num", 1], ["Num", 2], ["Num", 3]],
+                ],
+            ]
+        ],
+    }
+    assert toast.ast_to_source(f_ast) == f_source
+
+
+'''
 def test_cycle():
     f_source = "def f():\n    return 0\n"
 
@@ -120,134 +203,4 @@ def tst_s():
     }
     pprint(toast.reconstruct_function(j))
 
-
-'''
-def t_source2ast():
-    code = """def f(a, b):
-    return a + b
-    """
-
-    expected = [
-        {
-            "Return": {
-                "value": {
-                    "Add": {"left": ("variable", "a"), "right": ("variable", "b")}
-                }
-            }
-        }
-    ]
-
-    result = toast.source2ast(code)
-    assert result == expected
-
-    code = """def f(a, b, c):
-    d = a*b + c
-    return 2**d
-    """
-
-    expected = [
-        {
-            "Assign": {
-                "targets": [("variable", "d")],
-                "value": {
-                    "Add": {
-                        "left": {
-                            "Mult": {
-                                "left": ("variable", "a"),
-                                "right": ("variable", "b"),
-                            }
-                        },
-                        "right": ("variable", "c"),
-                    }
-                },
-            }
-        },
-        {
-            "Return": {
-                "value": {"Pow": {"left": ("literal", 2), "right": ("variable", "d")}}
-            }
-        },
-    ]
-
-    result = toast.source2ast(code)
-    assert result == expected
-
-
-def compare(a, b, depth=0):
-    if depth > 4:
-        return
-
-    if isinstance(a, int):
-        return
-
-    if isinstance(a, list):
-        for i, j in zip(a, b):
-            compare(i, j)
-
-    assert type(a).__name__ == type(b).__name__
-    assert sorted(dir(a)) == sorted(dir(b))
-
-    for attr in dir(a):
-        if attr.startswith('_'):
-            continue
-
-        i = getattr(a, attr)
-        j = getattr(b, attr)
-
-        print(attr)
-
-
-        compare(i, j, depth+1)
-
-
-def test_esomething():
-    code = """def f(a, b):
-    return a + b
-    """
-
-    parsed_ast = ast.parse(code)
-
-    o = parsed_ast.body[0].body
-    de_o = toast.deconstruct.deconstruct(o)
-    pprint(de_o)
-    o2 = toast.reconstruct.reconstruct(de_o)
-    #print(o)
-
-    ast.fix_missing_locations(o2[0])
-
-    """
-    o2[0].lineno = 2
-    o2[0].col_offset = 4
-
-    o2[0].value.lineno = 2
-    o2[0].value.col_offset = 11
-
-    o2[0].value.left.lineno = 2
-    o2[0].value.left.col_offset = 11
-
-    o2[0].value.right.lineno = 2
-    o2[0].value.right.col_offset = 15
-    """
-
-
-    pprint(o[0].value.right.col_offset)
-    pprint(o2[0].value.right.col_offset)
-
-    parsed_ast.body[0].body = o2
-    print(astor.to_source(parsed_ast))
-
-    #compare(o, o2)
-
-
-def test_something():
-    code = """def f(a, b):
-    return a + b
-    """
-
-    parsed_ast = ast.parse(code)
-    o = parsed_ast.body[0].body
-    o = toast.deconstruct.deconstruct(o)
-    print('\n--------\n')
-    pprint(o)
-    print('\n--------\n')
 '''
