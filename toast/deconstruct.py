@@ -1,124 +1,48 @@
-def deconstruct_list(a):
-    return list(map(deconstruct, a))
+import ast
+
+import astor
 
 
-def deconstruct_int(a):
-    return a
+def d_Return(line):
+    return ["Return", deconstruct(line.value)]
 
 
-def deconstruct_str(a):
-    return a
+def d_BinOp(line):
+    return [type(line.op).__name__, deconstruct(line.left), deconstruct(line.right)]
 
 
-def deconstruct_dict(a):
-    return a
+def d_Name(line):
+    return ["Name", line.id]
 
 
-def deconstruct_BinOp(a):
-    typ = type(a.op).__name__
-    data = {'left': deconstruct(a.left),
-            'right': deconstruct(a.right)}
-    return {typ: data}
+def d_Num(line):
+    return ["Num", line.n]
 
 
-def deconstruct_Tuple(a):
-    return {'Tuple': {'elts': deconstruct(a.elts)}}
+def d_Assign(line):
+    return ["Assign", deconstruct(line.targets), deconstruct(line.value)]
 
 
-def deconstruct_Name(a):
-    return ('variable', a.id)
+def d_Call(line):
+    return ["Call", deconstruct(line.func), deconstruct(line.args)]
 
 
-def deconstruct_Num(a):
-    return ('literal', a.n)
+deconstruct_lookup = {
+    "Return": d_Return,
+    "BinOp": d_BinOp,
+    "Name": d_Name,
+    "Assign": d_Assign,
+    "Num": d_Num,
+    "Call": d_Call,
+}
 
 
-def deconstruct_Str(a):
-    return ('literal', a.s)
+def deconstruct(line):
+    if isinstance(line, list):
+        return [deconstruct(e) for e in line]
 
-
-def deconstruct_Assign(a):
-    return {'Assign': {'targets': deconstruct(a.targets),
-                       'value': deconstruct(a.value)}}
-
-
-def deconstruct_Return(a):
-    return {'Return': {'value': deconstruct(a.value)}}
-
-
-deconstruct_lookup = {'list': deconstruct_list,
-                      'int': deconstruct_int,
-                      'str': deconstruct_str,
-                      'dict': deconstruct_dict,
-                      'Tuple': deconstruct_Tuple,
-                      'Name': deconstruct_Name,
-                      'Num': deconstruct_Num,
-                      'Str': deconstruct_Str,
-                      'Assign': deconstruct_Assign,
-                      'Return': deconstruct_Return,
-                      'BinOp': deconstruct_BinOp}
-
-
-def deconstruct(a):
-    typ = type(a).__name__
+    typ = type(line).__name__
     if typ in deconstruct_lookup:
-        return deconstruct_lookup[typ](a)
+        return deconstruct_lookup[typ](line)
 
-    raise TypeError(f'unhandled type: {typ}')
-
-
-def deconstruct3(a, depth=0):
-    if depth > 5:
-        return 'DEPTH EXCEEDED'
-
-    if isinstance(a, (int, str)):
-        return a
-
-    if isinstance(a, list):
-        return [deconstruct(e, depth+1) for e in a]
-
-    data = {}
-    for attr in dir(a):
-        if attr in ['__abstractmethods__',
-                    '__weakref__',
-                    '__subclasshook__',
-                    '__new__',
-                    '__le__',
-                    '__str__',
-                    '__sizeof__',
-                    '__setattr__',
-                    '__ne__',
-                    '__dir__',
-                    '__doc__',
-                    '__eq__',
-                    '__class__',
-                    '__delattr__',
-                    '__dict__',
-                    '__format__',
-                    '__ge__',
-                    '__getattribute__',
-                    '__gt__',
-                    '__hash__',
-                    '__init__',
-                    '__init_subclass__',
-                    '__lt__',
-                    '__reduce__',
-                    '__reduce_ex__',
-                    '__repr__',
-                    '__add__',
-                    '__contains__',
-                    '__getitem__',
-                    '__getnewargs__',
-                    '__iter__',
-                    '__len__',
-                    '__mul__',
-                    '__rmul__',
-                    '__call__',
-                    '__self__',
-                    '__qualname__',
-                    '__text_signature__']:
-            continue
-
-        data[attr] = deconstruct(getattr(a, attr), depth+1)
-
-    return data
+    raise TypeError(f"'{typ}' not handled")

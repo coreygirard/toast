@@ -3,9 +3,7 @@ import inspect
 
 import astor
 
-from toast import deconstruct2, reconstruct2
-
-# from toast.scratch import *
+from toast import deconstruct, reconstruct
 
 
 def _python_to_toast(module_ast):
@@ -13,7 +11,7 @@ def _python_to_toast(module_ast):
     return {
         "name": f_ast.name,
         "args": [a.arg for a in f_ast.args.args],
-        "body": [deconstruct2.deconstruct(line) for line in f_ast.body],
+        "body": [deconstruct.deconstruct(line) for line in f_ast.body],
     }
 
 
@@ -27,7 +25,7 @@ def _toast_to_python(a):
 
     f_ast.body[0].name = a["name"]
     f_ast.body[0].args.args = [ast.arg(a, None) for a in a["args"]]
-    f_ast.body[0].body = [reconstruct2.reconstruct(e) for e in a["body"]]
+    f_ast.body[0].body = [reconstruct.reconstruct(e) for e in a["body"]]
 
     for i, line in enumerate(f_ast.body[0].body):
         line.lineno = i

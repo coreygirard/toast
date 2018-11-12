@@ -1,66 +1,66 @@
 import ast
 
-
-def reconstruct_list(a):
-    return list(map(reconstruct, a))
+import astor
 
 
-def reconstruct_literal(o):
-    if isinstance(o, int):
-        return ast.Num(o)
+def r_Return(value):
+    return ast.Return(value=reconstruct(value))
 
 
-def reconstruct_variable(o):
-    return ast.Name(o, '')
+def r_Name(_id):
+    return ast.Name(_id, None)
 
 
-def reconstruct_tuple(o):
-    assert len(o) == 2
-    typ, val = o
-    if typ == 'literal':
-        return reconstruct_literal(val)
-    elif typ == 'variable':
-        return reconstruct_variable(val)
+def r_Assign(targets, value):
+    return ast.Assign(targets=[reconstruct(targets[0])], value=reconstruct(value))
 
 
-def reconstruct_dict(o):
-    k = list(o.keys())[0]
-    if k in reconstruct_lookup:
-        return reconstruct_lookup[k](o)
-
-    raise TypeError(f'unhandled type: {k}')
+def r_Add(left, right):
+    return ast.BinOp(left=reconstruct(left), op=ast.Add(), right=reconstruct(right))
 
 
-def reconstruct_Tuple(o):
-    return ast.Tuple(*[reconstruct(e) for e in o['Tuple']['elts']], None)
+def r_Sub(left, right):
+    return ast.BinOp(left=reconstruct(left), op=ast.Sub(), right=reconstruct(right))
 
 
-def reconstruct_Add(o):
-    return ast.BinOp(left=reconstruct(o['Add']['left']),
-                     op=ast.Add,
-                     right=reconstruct(o['Add']['right']))
+def r_Mult(left, right):
+    return ast.BinOp(left=reconstruct(left), op=ast.Mult(), right=reconstruct(right))
 
 
-def reconstruct_Assign(o):
-    return ast.Assign(targets=reconstruct(o['Assign']['targets']),
-                      value=reconstruct(o['Assign']['value']))
+def r_Div(left, right):
+    return ast.BinOp(left=reconstruct(left), op=ast.Div(), right=reconstruct(right))
 
 
-def reconstruct_Return(o):
-    return ast.Return(value=reconstruct(o['Return']['value']))
+def r_Num(n):
+    return ast.Num(n)
 
 
-reconstruct_lookup = {'list': reconstruct_list,
-                      'tuple': reconstruct_tuple,
-                      'dict': reconstruct_dict,
-                      'Assign': reconstruct_Assign,
-                      'Return': reconstruct_Return,
-                      'Add': reconstruct_Add}
+def r_Call(func, args):
+    return ast.Call(func=reconstruct(func), args=reconstruct(args))
 
 
-def reconstruct(a):
-    typ = type(a).__name__
-    if typ in reconstruct_lookup:
-        return reconstruct_lookup[typ](a)
+reconstruct_lookup = {
+    "Return": r_Return,
+    "Add": r_Add,
+    "Mult": r_Mult,
+    "Sub": r_Sub,
+    "Div": r_Div,
+    "Name": r_Name,
+    "Assign": r_Assign,
+    "Num": r_Num,
+    "Call": r_Call,
+}
 
-    raise TypeError(f'unhandled type: {typ}')
+
+def reconstruct(f_ast):
+    if isinstance(f_ast, list):
+        return [reconstruct(e) for e in f_ast]
+
+    print(f_ast)
+
+    head, *rest = f_ast
+
+    if head in reconstruct_lookup:
+        return reconstruct_lookup[head](*rest)
+
+    raise TypeError(f"'{head}' not handled")
