@@ -48,13 +48,3 @@ def ast_to_object(function_ast):
 
 def source_to_object(function_source):
     return ast_to_object(source_to_ast(function_source))
-
-
-"""
-def object_to_ast():
-    pass
-
-
-def object_to_source(function_object):
-    pass
-"""

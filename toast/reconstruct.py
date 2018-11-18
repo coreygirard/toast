@@ -35,8 +35,42 @@ def r_Num(n):
     return ast.Num(n)
 
 
-def r_Call(func, args):
-    return ast.Call(func=reconstruct(func), args=reconstruct(args))
+def r_Call(func, args, keywords):
+    return ast.Call(
+        func=reconstruct(func),
+        args=[reconstruct(a) for a in args],
+        keywords=[reconstruct(k) for k in keywords],
+    )
+
+
+def r_Str(s):
+    return ast.Str(s)
+
+
+def r_Attribute(value, attr):
+    return ast.Attribute(value=reconstruct(value), attr=reconstruct(attr))
+
+
+def r_str(s):
+    return s
+
+
+def r_list(lst):
+    return [reconstruct(e) for e in lst]
+
+
+def r_List(lst):
+    return ast.List(elts=[reconstruct(e) for e in lst], ctx=None)
+
+
+def r_Assert(test, msg):
+    return ast.Assert(
+        test=test, msg=(None if msg == [] else reconstruct(msg)), ctx=None
+    )
+
+
+def r_Pass():
+    return ast.Pass
 
 
 reconstruct_lookup = {
@@ -49,12 +83,19 @@ reconstruct_lookup = {
     "Assign": r_Assign,
     "Num": r_Num,
     "Call": r_Call,
+    "Str": r_Str,
+    "Attribute": r_Attribute,
+    "str": r_str,
+    "list": r_list,
+    "List": r_List,
+    "Assert": r_Assert,
+    "Pass": r_Pass,
 }
 
 
 def reconstruct(f_ast):
-    if isinstance(f_ast, list):
-        return [reconstruct(e) for e in f_ast]
+    # if isinstance(f_ast, list):
+    #    return [reconstruct(e) for e in f_ast]
 
     print(f_ast)
 
