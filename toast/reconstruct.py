@@ -94,11 +94,6 @@ reconstruct_lookup = {
 
 
 def reconstruct(f_ast):
-    # if isinstance(f_ast, list):
-    #    return [reconstruct(e) for e in f_ast]
-
-    print(f_ast)
-
     head, *rest = f_ast
 
     if head in reconstruct_lookup:
